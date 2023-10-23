@@ -1,5 +1,5 @@
 {
-  "name": "optimistic-ui-file-upload-remix",
+  "name": "remix-demo-file-upload",
   "private": true,
   "sideEffects": false,
   "type": "module",
