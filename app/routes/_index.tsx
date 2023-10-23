@@ -70,16 +70,7 @@ export default function Index() {
     <main>
       <h1>Upload a file</h1>
 
-      <label
-        style={{
-          height: 240,
-          width: 320,
-          border: "1px solid black",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <label>
         {isUploading ? <p>Uploading image...</p> : <p>Upload an image</p>}
 
         <input
