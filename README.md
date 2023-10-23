@@ -1,38 +1,12 @@
-# Welcome to Remix!
+# Remix Demo: File Upload
 
-- [Remix Docs](https://remix.run/docs)
+A simple demo on how to add a file upload that shows the image being uploaded and later replace it with the actual one.
 
-## Development
+## How to run this demo
 
-From your terminal:
+1. Clone this repo
+2. Run `npm install`
+3. Run `npm run dev`
+4. Open `http://localhost:3000`
 
-```sh
-npm run dev
-```
-
-This starts your app in development mode, rebuilding assets on file changes.
-
-## Deployment
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
-
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `remix build`
-
-- `build/`
-- `public/build/`
+Any file you upload will be stored in the `public/img` folder.
