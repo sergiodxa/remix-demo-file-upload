@@ -1,41 +1,127 @@
-import type { MetaFunction } from "@remix-run/node";
+import {
+  unstable_createMemoryUploadHandler,
+  unstable_parseMultipartFormData,
+  json,
+  unstable_createFileUploadHandler,
+  unstable_composeUploadHandlers,
+} from "@remix-run/node";
+import type { NodeOnDiskFile, ActionFunctionArgs } from "@remix-run/node";
+import { useFetcher } from "@remix-run/react";
+import { useEffect, useState } from "react";
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
-};
+export async function action({ request }: ActionFunctionArgs) {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  let formData = await unstable_parseMultipartFormData(
+    request,
+    unstable_composeUploadHandlers(
+      unstable_createFileUploadHandler({
+        filter({ contentType }) {
+          return contentType.includes("image");
+        },
+        directory: "./public/img",
+        avoidFileConflicts: false,
+        file({ filename }) {
+          return filename;
+        },
+        // 10MB
+        maxPartSize: 10 * 1024 * 1024,
+      }),
+      unstable_createMemoryUploadHandler(),
+    ),
+  );
+
+  let files = formData.getAll("file") as NodeOnDiskFile[];
+
+  return json({
+    files: files.map((file) => {
+      return { name: file.name, url: `./img/${file.name}` };
+    }),
+  });
+}
 
 export default function Index() {
+  let fetcher = useFetcher<typeof action>();
+
+  let isUploading = fetcher.state !== "idle";
+
+  let files = fetcher.formData?.getAll("file");
+
+  let uploadingFiles = files
+    ?.filter((value: unknown): value is File => value instanceof File)
+    .map((file) => {
+      let name = file.name;
+      let url = URL.createObjectURL(file);
+      return { name, url };
+    });
+
+  function uploadFiles(files: File[] | FileList) {
+    let formData = new FormData();
+    for (let file of files) formData.append("file", file);
+    fetcher.submit(formData, {
+      method: "post",
+      encType: "multipart/form-data",
+    });
+  }
+
+  let images = (fetcher.data?.files ?? []).concat(uploadingFiles ?? []);
+
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix</h1>
+    <main>
+      <h1>Upload a file</h1>
+
+      <label
+        style={{
+          height: 240,
+          width: 320,
+          border: "1px solid black",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {isUploading ? <p>Uploading image...</p> : <p>Upload an image</p>}
+
+        <input
+          name="file"
+          type="file"
+          style={{ display: "none" }}
+          onChange={(event) => {
+            if (!event.target.files) return;
+            uploadFiles(event.target.files);
+          }}
+        />
+      </label>
+
       <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
+        {images.map((file) => {
+          return <Image key={file.name} name={file.name} url={file.url} />;
+        })}
       </ul>
-    </div>
+    </main>
+  );
+}
+
+function Image({ name, url }: { name: string; url: string }) {
+  let [objectUrl] = useState(() => {
+    if (url.startsWith("blob:")) return url;
+    return undefined;
+  });
+
+  useEffect(() => {
+    if (objectUrl && !url.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
+  }, [objectUrl, url]);
+
+  return (
+    <img
+      alt={name}
+      src={url}
+      width={320}
+      height={240}
+      style={{
+        transition: "filter 300ms ease",
+        filter: url.startsWith("blob:") ? "blur(4px)" : "blur(0)",
+      }}
+    />
   );
 }
