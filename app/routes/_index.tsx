@@ -71,7 +71,7 @@ export default function Index() {
       <h1>Upload a file</h1>
 
       <label>
-        {isUploading ? <p>Uploading image...</p> : <p>Upload an image</p>}
+        {isUploading ? <p>Uploading image...</p> : <p>Select an image</p>}
 
         <input
           name="file"
