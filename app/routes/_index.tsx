@@ -55,15 +55,6 @@ export default function Index() {
       return { name, url };
     });
 
-  function uploadFiles(files: File[] | FileList) {
-    let formData = new FormData();
-    for (let file of files) formData.append("file", file);
-    fetcher.submit(formData, {
-      method: "post",
-      encType: "multipart/form-data",
-    });
-  }
-
   let images = (fetcher.data?.files ?? []).concat(uploadingFiles ?? []);
 
   return (
@@ -79,7 +70,12 @@ export default function Index() {
           style={{ display: "none" }}
           onChange={(event) => {
             if (!event.target.files) return;
-            uploadFiles(event.target.files);
+            let formData = new FormData();
+            for (let file of files) formData.append("file", file);
+            fetcher.submit(formData, {
+              method: "post",
+              encType: "multipart/form-data",
+            });
           }}
         />
       </label>
